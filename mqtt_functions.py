@@ -30,6 +30,13 @@ def dumpLightning(stat):	#imput string
 	message = stat
 	mqttc.publish(topicName, message)
 
+def dumpMovement(mov):
+	topicName = room+"/slave/"+socket.gethostname()+"/movement"
+	mqttc = mqtt.Client()
+	mqttc.connect(broker)
+	message = mov
+	mqttc.publish(topicName, message)
+
 #Retrieving
 
 #For the master
@@ -43,16 +50,3 @@ def setLightning(stat):	#send light percentage
 	mqttc.publish(topicName, message)
 
 #Retrieving
-def on_connect(client, userdata, flags, rc):
-  client.subscribe(room+"/slave/+/+")
-
-def on_message(client, userdata, msg):
-	print(msg.payload.decode())
-
-client = mqtt.Client()
-client.connect(broker, 1883, 60)
-
-client.on_connect = on_connect
-client.on_message = on_message
-
-client.loop_forever()
