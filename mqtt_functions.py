@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import socket
+import re
 
 
 broker = "test.mosquitto.org"
@@ -39,14 +40,16 @@ def dumpMovement(mov):
 
 #Retrieving
 
+
 #For the master
 #Dumping
 
-def setLightning(stat):	#send light percentage
+def setLight(stat):	#send light percentage
 	topicName = room+"/master/light"
 	mqttc = mqtt.Client()
 	mqttc.connect(broker)
-	message = humid
+	message = stat
 	mqttc.publish(topicName, message)
 
 #Retrieving
+

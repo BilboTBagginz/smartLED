@@ -291,13 +291,8 @@ def init(i2c):
     powerDown(i2c)
 
 
-def main():
-    i2c =onionI2C.OnionI2C()
+def getLightning():
+    i2c = onionI2C.OnionI2C()
     init(i2c)
-    while True:
-        print("lux :", readVisibleLux(i2c))
+    return readVisibleLux(i2c)
 
-
-
-if __name__ == "__main__":
-        main()
