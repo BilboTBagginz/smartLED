@@ -1,3 +1,4 @@
+"""
 from scipy.special import erfc
 import numpy
 
@@ -28,4 +29,6 @@ def prep_cleanup(list):
    y = numpy.array(list)
    return cleanup(y)
 
-
+"""
+def prep_cleanup(list):
+   return sum(list)/len(list)
