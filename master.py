@@ -5,18 +5,27 @@ from file_manipulation import*
 from mqtt_functions import*
 import datetime
 import time
+from uart import*
 
 
 room = "1f04"
 topic_names = [room+"/slave/+/temp", room+"/slave/+/humid", room+"/slave/+/lightning", room+"/slave/+/movement", room+"/master/light"]
 broker = "test.mosquitto.org"
 temp = []
+Temp = 0
 last_temp = []
 humid = []
+Humid = 0
 last_humid = []
 lightning = []
+Lightning = 0
 last_lightning = []
-movement = ''
+blt = 0
+last_blt = 0
+ir = 0
+last_ir = 0
+movement = '0'
+last = '0'
 light = 0
 
 def on_connect(client, userdata, flags, rc):
@@ -31,7 +40,7 @@ def on_message(client, userdata, msg):
     if(re.compile('lightning').search(msg.topic)):
         lightning.append(float(msg.payload.decode()))
     if(re.compile('movement').search(msg.topic)):
-        print(msg.payload.decode())
+        movement = (msg.payload.decode())
 
 mqttc = mqtt.Client()
 mqttc.connect(broker, 1883, 60)
@@ -42,6 +51,9 @@ mqttc.on_message = on_message
 mqttc.loop_start()
 
 while True:
+    blt = getBlt()
+    ir = getIr()
+
     now = datetime.datetime.now()
     time.sleep(1)
     if len(temp) != 0:
@@ -62,22 +74,27 @@ while True:
         lightning = list(set(lightning).symmetric_difference(set(last_lightning)))
         last_lightning = lightning
 
+    if movement != last:
+        file_append("room_movement.txt", str(now.strftime("%Y-%m-%d %H:%M:%S")))
+        last = movement
+
+    if blt or ir:
+        if int(last)-int(movement) == 100:
+            light = 0
+        else:
+            if Humid > 80:
+                light = 0
+            else:
+                if Temp < 50:
+                    light = 1
+                elif Temp > 90:
+                    light = 0
+                elif (Temp < 90) and (Temp > 50):
+                    light = 1 - 5*(Temp-50)/400
+        light = light * (1 - (Lightning / 2000))
+    else:
+        light = 0
+    dumpLight(light)
 
 
-    """
-    if movement != last_movement:
-        last_movement = movement
-        file_append("room_movement.txt", movement)
-    """
-
-    """    
-    if humid:
-        Humid = prep_cleanup(humid)
-        file_append("room_Humid.txt", Humid)
-    if lightning:
-        Lightning = prep_cleanup(lightning)
-        file_append("room_Lightning.txt", Lightning)
-    
-    setLight(light)
-    """
 mqttc.loop_stop()

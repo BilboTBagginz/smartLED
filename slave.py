@@ -1,10 +1,11 @@
 from uart import*
 import time
+import datetime
 from mqtt_functions import*
 import paho.mqtt.client as mqtt
 from file_manipulation import*
-from movement import*
 
+light = ''
 done = 0
 room = "1f04"
 topic_light = room+"/master/light"
@@ -20,7 +21,8 @@ def on_connect(client, userdata, flags, rc):
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
-    print(msg.payload.decode())
+    global light
+    light = msg.payload.decode()
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -37,10 +39,16 @@ client.loop_start()
 lastTrigger = ''
 
 while 1:
-    time.sleep(1)
+
     now = datetime.datetime.now()
     tim = int(round(time.time()))
     last_time = 0
+
+    if (getMovement() == 1) and (str(round(time.time())) != lastTrigger):
+        lastTrigger = str(round(time.time()))
+        dumpMovement(lastTrigger)
+        file_append("movement.txt", str(now.strftime("%Y-%m-%d %H:%M:%S")))
+
 
     if (tim % 5 == 0) and (tim != last_time) and not done:
         last_time = tim
@@ -55,10 +63,17 @@ while 1:
         lightning = getLightning()
         dumpLightning(lightning)
         file_append("lightning.txt", str(lightning) + " " + str(now.strftime("%Y-%m-%d %H:%M:%S")))
+
         
 
     elif (tim % 5 != 0):
         done = 0
-    movement()
+
+    if light != '':
+        time.sleep(1)
+        setLight(light)
+
+
+
 
 client.loop_stop()

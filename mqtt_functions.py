@@ -44,7 +44,7 @@ def dumpMovement(mov):
 #For the master
 #Dumping
 
-def setLight(stat):	#send light percentage
+def dumpLight(stat):	#send light percentage
 	topicName = room+"/master/light"
 	mqttc = mqtt.Client()
 	mqttc.connect(broker)
